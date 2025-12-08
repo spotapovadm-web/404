@@ -26,4 +26,4 @@ jobs:
     - name: Build the Docker image
       run: |
         cd frontend
-        docker build . --file frontend/Dockerfile --tag my-image-name:$(date +%s)
+        docker build . --tag my-image-name:$(date +%s)
