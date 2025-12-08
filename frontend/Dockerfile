@@ -1,20 +1,8 @@
-FROM node:18-alpine AS build
-WORKDIR /app
-
-#COPY package*.json ./
-#RUN npm ci
-
-COPY src/ ./src/
-COPY public/ ./public/
-
-RUN npm run build
-
 FROM node:18-alpine
 WORKDIR /app
-
+RUN npx create-react-app . --template minimal --skip-git
+COPY src/ ./src/
+RUN npm run build
 RUN npm install -g serve
-
-COPY --from=build /app/build ./build
-
 EXPOSE 8080
 CMD ["serve", "-s", "build", "-l", "8080"]
