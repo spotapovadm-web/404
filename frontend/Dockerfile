@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22.21-alpine
 WORKDIR /app
 RUN npx create-react-app . --template minimal --skip-git
 COPY src/ ./src/
