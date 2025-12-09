@@ -1,8 +1,8 @@
 FROM node:22.21-alpine
 WORKDIR /app
-RUN npx create-react-app . --template minimal --skip-git
-COPY src/ ./src/
+COPY . .
+RUN npm install
 RUN npm run build
 RUN npm install -g serve
 EXPOSE 8080
-CMD ["serve", "-s", "build", "-l", "8080"]
+CMD ["npx", "serve", "-s", "dist", "-l", "8080"]
