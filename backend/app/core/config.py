@@ -1,0 +1,49 @@
+"""
+config.py - Конфигурация приложения (упрощенная версия без pydantic-settings)
+"""
+
+import os
+from typing import List
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Загрузка переменных окружения
+load_dotenv()
+
+class Settings(BaseModel):
+    """Настройки приложения"""
+    
+    # Основные настройки
+    APP_NAME: str = "TestOps Copilot"
+    VERSION: str = "1.0.0"
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    
+    # Сервер
+    BACKEND_HOST: str = os.getenv("BACKEND_HOST", "0.0.0.0")
+    BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
+    
+    # Cloud.ru AI Agent
+    CLOUDRU_AGENT_URL: str = os.getenv("CLOUDRU_AGENT_URL", "")
+    CLOUDRU_API_KEY: str = os.getenv("CLOUDRU_API_KEY", "")
+    
+    # CORS
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",  # React фронтенд
+        "http://localhost:8000",  # FastAPI
+    ]
+    
+    # Время ожидания
+    REQUEST_TIMEOUT: int = 30
+    AGENT_TIMEOUT: int = 60
+    
+    # Настройки генерации
+    DEFAULT_TEST_TYPE: str = "UI"
+    DEFAULT_PRODUCT: str = "Cloud.ru Calculator"
+    
+    # Валидация
+    MIN_TEST_CASE_LENGTH: int = 100
+    MAX_TEST_CASE_LENGTH: int = 5000
+
+# Экземпляр настроек
+settings = Settings()
