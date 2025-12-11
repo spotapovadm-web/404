@@ -5,6 +5,7 @@ responses.py - Дополнительные модели Pydantic для отв�
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
+from app.models.schemas import TestCaseResponse, ValidationResult, OptimizationResult
 
 class ErrorResponse(BaseModel):
     """Модель для ответов с ошибками"""

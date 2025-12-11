@@ -65,6 +65,15 @@ class TestCaseValidator:
         errors = []
         warnings = []
         
+        # Проверяем, что это Python код, а не текстовое требование
+        if not cls._looks_like_python_code(test_case):
+            return ValidationResult(
+                is_valid=False,
+                errors=["Ошибка: это не Python код. Поле 'test_case' должно содержать код тест-кейса, а не текстовое требование."],
+                warnings=["Подсказка: сначала сгенерируйте тест-кейс через /api/v1/generate"],
+                score=0
+            )
+        
         # 1. Проверка синтаксиса Python
         try:
             ast.parse(test_case)
@@ -142,6 +151,36 @@ class TestCaseValidator:
         )
     
     @classmethod
+    def _looks_like_python_code(cls, text: str) -> bool:
+        """Проверяет, похож ли текст на Python код"""
+        # Если текст начинается с кириллицы без импорта - это требование, а не код
+        if len(text.strip()) < 50:
+            return False
+        
+        # Ищем признаки Python кода
+        python_keywords = [
+            "import ", "from ", "def ", "class ", "@", "assert ", "with ", 
+            "return ", "if ", "else:", "try:", "except", "for ", "while "
+        ]
+        
+        text_lower = text.lower()
+        has_python_keywords = any(keyword in text_lower for keyword in python_keywords)
+        
+        # Если нет Python ключевых слов - это не код
+        if not has_python_keywords:
+            return False
+        
+        # Проверяем, начинается ли с русского текста (скорее всего требование)
+        first_line = text.strip().split('\n')[0]
+        russian_chars = any('а' <= char.lower() <= 'я' for char in first_line[:50])
+        
+        # Если начинается с русского и нет import в начале - это требование
+        if russian_chars and "import " not in first_line.lower():
+            return False
+            
+        return True
+    
+    @classmethod
     def validate_batch(cls, test_cases: List[str], test_type: str = "UI") -> List[ValidationResult]:
         """Валидирует несколько тест-кейсов"""
         return [cls.validate(tc, test_type) for tc in test_cases]
@@ -151,9 +190,9 @@ validator = TestCaseValidator()
 @router.post("/validate", response_model=ValidationResult)
 async def validate_test_case(request: ValidateRequest):
     """
-    Валидирует тест-кейс на соответствие стандартам
+    Валидирует тест**-кейс на соответствие стандартам
     
-    - **test_case**: Код тест-кейса для валидации
+    - **test_case**: Код тест-кейса для валидации (Python код, а не текстовое требование)
     - **test_type**: Тип теста
     """
     try:
@@ -203,94 +242,4 @@ async def validate_batch_test_cases(test_cases: List[str], test_type: str = "UI"
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка пакетной валидации: {str(e)}"
-        )
-
-@router.post("/check-standards")
-async def check_standards_compliance(test_case: str):
-    """Проверяет соответствие стандартам Allure TestOps"""
-    try:
-        standards = [
-            {
-                "name": "Импорт Allure",
-                "pattern": "import allure",
-                "required": True,
-                "found": "import allure" in test_case,
-                "description": "Обязательный импорт библиотеки Allure"
-            },
-            {
-                "name": "Декоратор @allure.feature",
-                "pattern": "@allure.feature",
-                "required": True,
-                "found": "@allure.feature" in test_case,
-                "description": "Указание функциональности (feature)"
-            },
-            {
-                "name": "Декоратор @allure.title",
-                "pattern": "@allure.title",
-                "required": True,
-                "found": "@allure.title" in test_case,
-                "description": "Человекочитаемое название теста"
-            },
-            {
-                "name": "Декоратор @allure.story",
-                "pattern": "@allure.story",
-                "required": False,
-                "found": "@allure.story" in test_case,
-                "description": "История (story) для группировки тестов"
-            },
-            {
-                "name": "Декоратор @allure.tag",
-                "pattern": "@allure.tag",
-                "required": False,
-                "found": "@allure.tag" in test_case,
-                "description": "Теги для фильтрации тестов"
-            },
-            {
-                "name": "Паттерн AAA",
-                "pattern": "# Arrange, # Act, # Assert",
-                "required": True,
-                "found": all(marker in test_case for marker in ["# Arrange", "# Act", "# Assert"]),
-                "description": "Наличие всех трех секций паттерна AAA"
-            },
-            {
-                "name": "Assert statement",
-                "pattern": "assert ",
-                "required": True,
-                "found": "assert " in test_case,
-                "description": "Наличие проверок (assert statements)"
-            },
-            {
-                "name": "Тестовый класс",
-                "pattern": "class Test",
-                "required": True,
-                "found": "class Test" in test_case,
-                "description": "Наличие тестового класса"
-            },
-            {
-                "name": "Тестовый метод",
-                "pattern": "def test_",
-                "required": True,
-                "found": "def test_" in test_case,
-                "description": "Наличие тестового метода"
-            },
-        ]
-        
-        passed = sum(1 for s in standards if s["found"] or not s["required"])
-        total = len(standards)
-        
-        return {
-            "standards": standards,
-            "compliance_score": int((passed / total) * 100),
-            "passed_standards": passed,
-            "total_standards": total,
-            "recommendations": [
-                s["description"] for s in standards if not s["found"] and s["required"]
-            ]
-        }
-        
-    except Exception as e:
-        logger.error(f"Ошибка в /check-standards: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка проверки стандартов: {str(e)}"
         )

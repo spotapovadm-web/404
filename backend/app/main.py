@@ -9,11 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 # Добавляем путь для импортов
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
-# Используем относительные импорты
-from .core.config import settings
-from .api import test_cases, optimize, validate
+# Импорты
+from app.core.config import settings
 
 # Менеджер жизненного цикла приложения
 @asynccontextmanager
@@ -28,7 +30,7 @@ async def lifespan(app: FastAPI):
     print("="*60)
     
     # Инициализация сервисов
-    from .services.llm_service import agent_service
+    from app.services.llm_service import agent_service
     try:
         await agent_service.initialize()
         print(f"✅ AI-агент подключен")
@@ -64,6 +66,7 @@ app.add_middleware(
 )
 
 # Подключение роутеров
+from app.api import test_cases, optimize, validate
 app.include_router(test_cases.router, prefix="/api/v1", tags=["Test Cases"])
 app.include_router(optimize.router, prefix="/api/v1", tags=["Optimization"])
 app.include_router(validate.router, prefix="/api/v1", tags=["Validation"])
@@ -81,10 +84,13 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Проверка здоровья приложения"""
+    from app.services.llm_service import agent_service
+    
     return {
         "status": "healthy",
         "service": "TestOps Copilot",
-        "version": settings.VERSION
+        "version": settings.VERSION,
+        "agent_connected": agent_service.agent_client is not None
     }
 
 # Запуск приложения
