@@ -3,7 +3,7 @@ test_cases.py - API для генерации тест-кейсов
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, status
 from typing import List, Optional
 
 from app.models.schemas import (
@@ -32,8 +32,15 @@ async def generate_test_case(request: TestCaseRequest):
     """
     try:
         # Проверяем подключение к агенту
-        if agent_service.agent_client is None:
-            await agent_service.initialize()
+        try:
+            if agent_service.agent_client is None:
+                await agent_service.initialize()
+        except Exception as agent_error:
+            logger.error(f"Ошибка инициализации агента: {agent_error}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"AI-агент недоступен: {str(agent_error)}"
+            )
         
         # Генерируем тест-кейс через LLM
         result = await agent_service.generate_test_case(
@@ -44,7 +51,7 @@ async def generate_test_case(request: TestCaseRequest):
         
         if not result["success"]:
             raise HTTPException(
-                status_code=500,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=result.get("error", "Ошибка генерации тест-кейса")
             )
         
@@ -90,138 +97,13 @@ async def generate_test_case(request: TestCaseRequest):
         
         return TestCaseResponse(**result)
         
+    except HTTPException:
+        raise  # Пробрасываем HTTPException дальше
     except Exception as e:
         logger.error(f"Ошибка в /generate: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка генерации тест-кейса: {str(e)}"
-        )
-
-@router.post("/generate-batch")
-async def generate_batch_test_cases(
-    requirements: List[str],
-    test_type: TestType = TestType.UI,
-    product: str = "Cloud.ru Calculator",
-    background_tasks: BackgroundTasks = None
-):
-    """
-    Генерирует несколько тест-кейсов пачкой
-    
-    - **requirements**: Список требований
-    - **test_type**: Тип тестов
-    - **product**: Название продукта
-    """
-    try:
-        results = []
-        
-        # Асинхронно генерируем тест-кейсы
-        for requirement in requirements:
-            result = await agent_service.generate_test_case(
-                requirement=requirement,
-                test_type=test_type.value,
-                product=product
-            )
-            
-            # Форматируем код для каждого результата
-            if result["success"]:
-                metadata = {
-                    "test_type": test_type.value,
-                    "product": product,
-                    "requirement": requirement,
-                    "priority": "NORMAL"
-                }
-                
-                formatted_code = allure_generator.format_code(
-                    result["test_case"],
-                    metadata
-                )
-                
-                formatted_code = format_python_code(formatted_code)
-                formatted_code = fix_code_indentation(formatted_code)
-                
-                result["test_case"] = formatted_code
-            
-            results.append(result)
-        
-        # Анализируем результаты
-        successful = [r for r in results if r["success"]]
-        failed = [r for r in results if not r["success"]]
-        
-        return {
-            "total": len(results),
-            "successful": len(successful),
-            "failed": len(failed),
-            "success_rate": round((len(successful) / len(results)) * 100, 2) if results else 0,
-            "results": results
-        }
-        
-    except Exception as e:
-        logger.error(f"Ошибка в /generate-batch: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка пакетной генерации: {str(e)}"
-        )
-
-@router.post("/generate-from-openapi")
-async def generate_from_openapi(spec_url: str):
-    """
-    Генерирует тест-кейсы из OpenAPI спецификации
-    
-    - **spec_url**: URL или путь к OpenAPI спецификации
-    """
-    try:
-        # Парсим OpenAPI спецификацию
-        spec = openapi_parser.parse(spec_url)
-        
-        # Генерируем тест-кейсы из спецификации
-        test_cases = openapi_parser.generate_test_cases_from_spec(spec)
-        
-        # Генерируем код для каждого тест-кейса
-        generated_tests = []
-        for test_case in test_cases:
-            result = await agent_service.generate_test_case(
-                requirement=test_case["requirement"],
-                test_type=test_case["test_type"],
-                product=test_case["product"]
-            )
-            
-            if result["success"]:
-                # Форматируем код
-                metadata = {
-                    "test_type": test_case["test_type"],
-                    "product": test_case["product"],
-                    "requirement": test_case["requirement"],
-                    "priority": test_case.get("priority", "NORMAL")
-                }
-                
-                formatted_code = allure_generator.format_code(
-                    result["test_case"],
-                    metadata
-                )
-                
-                formatted_code = format_python_code(formatted_code)
-                formatted_code = fix_code_indentation(formatted_code)
-                
-                result["test_case"] = formatted_code
-                
-                generated_tests.append({
-                    **result,
-                    "metadata": test_case["metadata"]
-                })
-        
-        return {
-            "spec_info": spec["info"],
-            "total_endpoints": len(spec["endpoints"]),
-            "generated_tests": len(generated_tests),
-            "coverage_analysis": spec["coverage_analysis"],
-            "tests": generated_tests
-        }
-        
-    except Exception as e:
-        logger.error(f"Ошибка в /generate-from-openapi: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка генерации из OpenAPI: {str(e)}"
         )
 
 @router.get("/examples")
