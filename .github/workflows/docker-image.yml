@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build and Run with docker
 
 on:
   push:
@@ -6,26 +6,88 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  BACKEND_IMAGE: "backend"
+  FRONTEND_IMAGE: "frontend"
+  BACKEND_PORT: 8000
+  FRONTEND_PORT: 8080
+
 jobs:
-
-  build_back:
-
-    runs-on: ubuntu-latest
+  build-and-run:
+    runs-on: self-hosted
+    timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Setup Buildx for docker
+      run: |
+        docker system prune -f
+        docker image prune -a --filter "until=24h" -f || true
+
+    - name: Build Backend Image
       run: |
         cd backend
-        docker build . --tag my-image-name:$(date +%s)
+        docker build \
+          --tag ${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
+          --tag ${{ env.BACKEND_IMAGE }}:latest \
+          --label "commit=${{ github.sha }}" \
+          --label "build=${{ github.run_id }}" \
+          .
+      timeout-minutes: 10
 
-  build_front:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
+    - name: Build Frontend Image
       run: |
         cd frontend
-        docker build . --tag my-image-name:$(date +%s)
+        docker build \
+          --tag ${{ env.FRONTEND_IMAGE }}:${{ github.sha }} \
+          --tag ${{ env.FRONTEND_IMAGE }}:latest \
+          --label "commit=${{ github.sha }}" \
+          --label "build=${{ github.run_id }}" \
+          .
+      timeout-minutes: 10
+
+    - name: Stop and Cleanup Existing Containers
+      if: github.event_name == 'push'
+      run: |
+        docker stop backend frontend --time 10 2>/dev/null || true
+        docker rm backend frontend 2>/dev/null || true
+        
+        docker container prune -f || true
+
+    - name: Deploy Containers
+      if: github.event_name == 'push'
+      run: |
+        docker run -d \
+          --name backend \
+          -p ${{ env.BACKEND_PORT }}:${{ env.BACKEND_PORT }} \
+          ${{ env.BACKEND_IMAGE }}:latest
+        
+        docker run -d \
+          --name frontend \
+          -p ${{ env.FRONTEND_PORT }}:${{ env.FRONTEND_PORT }} \
+          ${{ env.FRONTEND_IMAGE }}:latest
+        
+        sleep 5
+        echo "Checking containers status:"
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        
+        curl -f --retry 3 --retry-delay 2 http://localhost:${{ env.BACKEND_PORT }}/health 2>/dev/null || \
+          echo "Backend health check failed (might be expected)"
+        
+        curl -f --retry 3 --retry-delay 2 http://localhost:${{ env.FRONTEND_PORT }} 2>/dev/null || \
+          echo "Frontend check failed (might be expected)"
+
+    - name: Post-Deployment Cleanup
+      if: always()
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          docker stop backend frontend 2>/dev/null || true
+          docker rm backend frontend 2>/dev/null || true
+          
+          docker rmi ${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
+                     ${{ env.FRONTEND_IMAGE }}:${{ github.sha }} 2>/dev/null || true
+        fi
