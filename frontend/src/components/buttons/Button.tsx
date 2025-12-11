@@ -1,11 +1,11 @@
-import { useThemeStore } from "@lib/stores";
+import type { MouseEventHandler, ReactNode } from 'react';
 
-const theme = useThemeStore(state => state.theme);
-
-function Button() {
+function Button({ onClick, contents }: { onClick: MouseEventHandler<HTMLButtonElement>, contents: ReactNode }) {
     return (
-        {}
-    )
+        <button onClick={onClick}>
+            {contents}
+        </button>
+    );
 }
 
 export default Button;

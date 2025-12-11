@@ -1,7 +1,11 @@
+import { Outlet } from "react-router-dom";
+
 function App() {
 
   return (
-    <h1 className="">Hey</h1>
+    <div className="h-screen w-screen">
+      <Outlet />
+    </div>
   );
 }
 
