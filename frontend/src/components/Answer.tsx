@@ -1,8 +1,8 @@
 
 
-function Answer({ text }: { text: string }) {
+function Answer({ text }: { text?: string }) {
     return (
-        <div>
+        <div className="">
             <p>{text}</p>
         </div>
     );
