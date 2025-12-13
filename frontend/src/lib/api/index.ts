@@ -5,6 +5,9 @@ const API_BASE_PATH = 'http://localhost:8000/api/v1';
 const generateTest = async (requirement: string, test_type: TestType, product: string, priority: PriorityType): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/generate', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             requirement: requirement,
             test_type: test_type,
@@ -21,6 +24,9 @@ const generateTest = async (requirement: string, test_type: TestType, product: s
 const generateTestBatch = async (requirements: Array<string>, test_type: TestType, product: string): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/generate-batch', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             requirements: requirements,
             test_type: test_type,
@@ -36,6 +42,9 @@ const generateTestBatch = async (requirements: Array<string>, test_type: TestTyp
 const generateTestFromOpenAPI = async (spec_url: string): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/generate-from-openapi', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             spec_url: spec_url
         })
@@ -48,7 +57,10 @@ const generateTestFromOpenAPI = async (spec_url: string): Promise<Record<string,
 
 const getExamples = async (): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/examples', {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json",
+        }
     });
 
     if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
@@ -58,7 +70,10 @@ const getExamples = async (): Promise<Record<string, any>> => {
 
 const getConnectionStatus = async (): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/status', {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
 
     if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
@@ -68,7 +83,10 @@ const getConnectionStatus = async (): Promise<Record<string, any>> => {
 
 const getFormats = async (): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/formats', {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
 
     if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
@@ -80,6 +98,9 @@ const getFormats = async (): Promise<Record<string, any>> => {
 const optimizeGen = async (test_cases: string, analyze_coverage: boolean, find_duplicates: boolean): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/optimize', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             test_cases: test_cases,
             analyze_coverage: analyze_coverage,
@@ -95,6 +116,9 @@ const optimizeGen = async (test_cases: string, analyze_coverage: boolean, find_d
 const removeDuplicates = async (keep_first: boolean = true): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/remove-duplicates', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             keep_first: keep_first
         })
@@ -107,7 +131,10 @@ const removeDuplicates = async (keep_first: boolean = true): Promise<Record<stri
 
 const analyzeComplexity = async (): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/analyze-complexity', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
 
     if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
@@ -118,6 +145,9 @@ const analyzeComplexity = async (): Promise<Record<string, any>> => {
 const validate = async (test_case: string, test_type: TestType): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/validate', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             test_case: test_case,
             test_type: test_type
@@ -132,6 +162,9 @@ const validate = async (test_case: string, test_type: TestType): Promise<Record<
 const validateBatch = async (test_type: TestType): Promise<Record<string, any>> => {
     const res = await fetch(API_BASE_PATH + '/validate-batch', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             test_type: test_type
         })
@@ -143,8 +176,11 @@ const validateBatch = async (test_type: TestType): Promise<Record<string, any>> 
 }
 
 const checkStandarts = async (test_case: string): Promise<Record<string, any>> => {
-    const res = await fetch(API_BASE_PATH + '/validate-batch', {
+    const res = await fetch(API_BASE_PATH + '/check-standards', {
         method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             test_case: test_case
         })
