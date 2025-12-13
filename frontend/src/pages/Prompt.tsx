@@ -14,14 +14,16 @@ function Prompt() {
   const [answers, setAnswers] = useState<JSX.Element[]>([]);
 
   const addAnswer = (answer: JSX.Element) => {
-    setAnswers(prev => [...prev, answer]);
+    setAnswers(prev => {
+      return [...prev, <div key={prev.length}>{answer}</div>]
+    });
   };
 
   return (
     <div className="w-screen h-screen flex flex-col bg-bg text-fg">
 
-      <div className="flex-1 flex items-center justify-center">
-        <h2 className="text-3xl font-bold">TestOps Copilot</h2>
+      <div className="flex flex-col w-full gap-10 lg:px-26 pb-55 items-start m-auto overflow-y-auto grow">
+        <h2 className="text-3xl font-bold m-auto p-20">TestOps Copilot</h2>
         {answers}
       </div>
 
@@ -32,6 +34,7 @@ function Prompt() {
             <input
               ref={productRef}
               placeholder="Введите название продукта"
+              value="Cloud.ru Calculator"
               className="flex-1 bg-gray-600/50 text-white p-3 rounded-xl outline-none"
             />
 
@@ -59,10 +62,11 @@ function Prompt() {
             <input
               ref={reqRef}
               placeholder="Введите требования к тест-кейсу"
+              value="Проверить отображение начальной страницы калькулятора Cloud.ru"
               className="flex-1 bg-gray-600/50 text-white p-3 rounded-xl outline-none"
             />
 
-            <Button onClick={async () => await onSendButton(reqRef, testTypeRef, productRef, addAnswer)} className="w-12 h-12 flex items-center justify-center rounded-xl hover:bg-accent/75 active:bg-accent/50 transition-colors">
+            <Button onClick={() => onSendButton(reqRef, testTypeRef, productRef, addAnswer)} className="w-12 h-12 flex items-center justify-center rounded-xl hover:bg-accent/75 active:bg-accent/50 transition-colors">
               <Icon icon="mingcute:arrow-up-fill" className="text-bg rotate-90" />
             </Button>
           </div>

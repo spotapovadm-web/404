@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'); /* Roboto */
+@import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap'); /* Cascadia Code */
 @import "tailwindcss";
+@import 'highlight.js/styles/github-dark.css';
 
 :root {
   --theme-bg: #3c2f41;
@@ -44,6 +46,5 @@
 
   /* Fonts */
   --font-roboto: "Roboto", sans-serif;
-  --font-inter: "Inter", sans-serif;
-  --font-mono: "Fira Code", monospace;
+  --font-code: "Cascadia Code", sans-serif;
 }
