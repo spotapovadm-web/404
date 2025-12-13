@@ -1,21 +1,29 @@
 import type { RefObject } from "react";
 import type { TestType } from "../types";
 import toast from "react-hot-toast";
-import { Answer } from "@/components";
+import { Request, Answer } from "@/components";
+import type { JSX } from "react";
 
-const onSendButton = (req: RefObject<HTMLInputElement | null>, test_t: RefObject<HTMLSelectElement | null>, product: RefObject<HTMLInputElement | null>, addAnswer: CallableFunction) => {
-    const product_name = product.current?.value;
+const onSendButton = (reqObj: RefObject<HTMLInputElement | null>, testTypeObj: RefObject<HTMLSelectElement | null>, productObj: RefObject<HTMLInputElement | null>, addHistory: CallableFunction, chatHistory: JSX.Element[]) => {
+    const product_name = productObj.current?.value;
     if (!product_name || product_name.length === 0) {
         return toast.error("Введите имя продукта")
     }
 
-    const requirement = req.current?.value;
+    const requirement = reqObj.current?.value;
     if (!requirement || requirement.length === 0) {
         return toast.error("Введите требование тест кейса")
     }
-    const test_type = test_t.current?.value as TestType;
+    const test_type = testTypeObj.current?.value as TestType;
     
-    addAnswer(<Answer product_name={product_name} req={requirement} test_type={test_type} />)
+    addHistory(<Request key={chatHistory.length} test_type={test_type} product_name={product_name} requirement={requirement} />)
+    addHistory(<Answer key={chatHistory.length + 1} product_name={product_name} req={requirement} test_type={test_type} />)
 }
 
-export { onSendButton }
+const onCopy = (content: string) => {
+    navigator.clipboard.writeText(content)
+    .then(() => toast.success("Скопирован текст"))
+    .catch(() => toast.error("Ошибка копирования"))
+};
+
+export { onSendButton, onCopy }
