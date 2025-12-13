@@ -9,6 +9,7 @@ import type { JSX } from "react";
 function Prompt() {
   const reqRef = useRef<HTMLInputElement>(null);
   const productRef = useRef<HTMLInputElement>(null);
+  // const sendButtonRef = useRef<HTMLButtonElement>(null);
   const testTypeRef = useRef<HTMLSelectElement>(null);
 
   const [chat_history, setChatHistory] = useState<JSX.Element[]>([]);
@@ -33,6 +34,7 @@ function Prompt() {
               ref={productRef}
               placeholder="Введите название продукта"
               value="Cloud.ru Calculator"
+              onKeyDown={(e) => {if (e.key === "Enter") reqRef.current?.focus()}}
               className="flex-1 bg-gray-600/50 text-white p-3 rounded-xl outline-none"
             />
 
@@ -60,11 +62,12 @@ function Prompt() {
             <input
               ref={reqRef}
               placeholder="Введите требования к тест-кейсу"
-              value="Проверить отображение начальной страницы калькулятора Cloud.ru"
+              // value="Проверить отображение начальной страницы калькулятора Cloud.ru"
               className="flex-1 bg-gray-600/50 text-white p-3 rounded-xl outline-none"
             />
 
             <Button
+              
               onClick={() =>
                 onSendButton(reqRef, testTypeRef, productRef, addHistory, chat_history)
               }

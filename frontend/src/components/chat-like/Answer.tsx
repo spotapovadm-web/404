@@ -14,7 +14,8 @@ function Answer({
   test_type: TestType;
   product_name: string;
 }) {
-  const [test_case, setTestCase] = useState<string>("");
+  const [test_case, setTestCase] = useState("");
+  const [execution_time, setExecutionTime] = useState(0);
   const [err, setErr] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +32,9 @@ function Answer({
           "NORMAL"
         );
         setTestCase(value?.test_case);
+        setExecutionTime(value?.execution_time);
+
+
         setLoading(false);
       } catch (err) {
         setErr(true);
@@ -50,14 +54,16 @@ function Answer({
           <Icon icon="eos-icons:bubble-loading" width={25} />
         ) : (
           <>
+            <p>Думал на протяжении {execution_time} сек.</p>
             <button
+              type="button"
               onClick={() => onCopy(test_case)}
-              className="flex backdrop-blur-2xl items-center gap-1 absolute z-10 border border-black/20 bg-black/20 self-end hover:border-white/40 active:bg-white/50 transition-colors duration-100 rounded-tr-2xl p-2"
+              className="flex backdrop-blur-2xl items-center mt-10 gap-1 absolute z-10 border border-black/20 bg-black/20 self-end hover:border-white/40 active:bg-white/50 transition-colors duration-100 rounded-tr-2xl p-2"
             >
               <Icon icon="mingcute:copy-line" />
               <p>Копировать код</p>
             </button>
-            <pre className="bg-black/40 rounded-2xl whitespace-pre overflow-x-scroll p-2">
+            <pre className="bg-black/40 rounded-2xl mt-4 whitespace-pre overflow-x-scroll p-2">
               <code
                 className="font-code python"
                 dangerouslySetInnerHTML={{
