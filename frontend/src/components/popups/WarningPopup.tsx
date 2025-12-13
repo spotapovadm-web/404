@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import { Icon } from "@iconify-icon/react";
 
-function ValidationPopup({
+function WarningPopup({
   opened,
-  validations,
+  warnings,
   onClose,
 }: {
   opened: boolean;
-  validations: Record<string, any>;
+  warnings: Array<string>;
   onClose: CallableFunction;
 }) {
   const popupRef = useRef<HTMLDivElement>(null);
@@ -31,23 +31,12 @@ function ValidationPopup({
       ref={popupRef}
       className="absolute z-50 bg-black/40 backdrop-blur-2xl flex flex-col gap-2 top-[50%] mt-5 left-0 rounded-2xl p-2"
     >
-      {validations &&
-        Object.keys(validations).map((key, index) => (
-          <span key={index} className="flex gap-1 items-center">
-            <p>{key}</p>
-            {validations[key] !== true ? (
-              <Icon
-                className="text-red-400"
-                icon="material-symbols:error-rounded"
-                width={20}
-              />
-            ) : (
-              <Icon className="text-green-400" icon="mdi:success" width={20} />
-            )}
-          </span>
+      {warnings &&
+        warnings.map((key, index) => (
+          <p key={index} className="bg-yellow-300/18 rounded-2xl">{key}</p>
         ))}
     </div>
   ) : null;
 }
 
-export default ValidationPopup;
+export default WarningPopup;

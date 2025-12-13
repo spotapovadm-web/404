@@ -18,6 +18,10 @@ const onSendButton = (reqObj: RefObject<HTMLInputElement | null>, testTypeObj: R
     
     addHistory(<Request key={chatHistory.length} test_type={test_type} product_name={product_name} requirement={requirement} />)
     addHistory(<Answer key={chatHistory.length + 1} product_name={product_name} req={requirement} test_type={test_type} />)
+    
+    if (reqObj.current instanceof HTMLInputElement) {
+        reqObj.current.value = '';
+    }
 }
 
 const onCopy = (content: string) => {

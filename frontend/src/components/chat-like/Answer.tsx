@@ -4,7 +4,7 @@ import type { TestType } from "@lib/types";
 import { useEffect, useRef, useState } from "react";
 import hljs from "highlight.js";
 import { onCopy } from "@lib/callbacks";
-import ValidationPopup from "@components/popups/ValidationPopup";
+import { ValidationPopup, WarningPopup } from "@/components";
 
 function Answer({
   req,
@@ -26,6 +26,9 @@ function Answer({
   const [validsCount, setValidsCount] = useState(0);
   const [validValidsCount, setValidValidsCount] = useState(0);
   const [validsRes, setValidsRes] = useState<Record<any, string>>({});
+
+  const [warns, setWarns] = useState([]);
+  const [warnsOpened, setWarnsOpened] = useState(false);
 
   const effectRan = useRef(false);
 
@@ -71,7 +74,8 @@ function Answer({
         setValidValidsCount(
           Object.values(res?.compliance).filter((v) => v === true).length
         );
-        setValidsRes(res);
+        setValidsRes(res?.compliance);
+        setWarns(res?.warnings);
         setValidsLoading(false);
       } catch (err) {
         console.log(err);
@@ -89,12 +93,12 @@ function Answer({
           <Icon icon="eos-icons:bubble-loading" width={25} />
         ) : (
           <>
-            <div className="flex mb-4">
+            <div className="flex gap-2 mb-4">
               <button
                 onClick={() => {
                   if (!validsErr && !validsLoading) setOpenValids(!validsOpened);
                 }}
-                className="bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center"
+                className="relative bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center"
               >
                 <p>Валидации</p>
                 {validsErr && (
@@ -110,12 +114,36 @@ function Answer({
                 {!validsErr &&
                   !validsLoading &&
                   validValidsCount + "/" + validsCount}
+
+                <ValidationPopup
+                    opened={validsOpened}
+                    validations={validsRes}
+                    onClose={() => setOpenValids(false)}
+                />
               </button>
-              <ValidationPopup
-                opened={validsOpened}
-                validations={validsRes}
-                onClose={() => setOpenValids(false)}
-              />
+              <button
+               onClick={() => setWarnsOpened(!warnsOpened)}
+               className="relative flex gap-1 bg-black/10 rounded-2xl p-2 items-center">
+                <p>Предупреждения: </p>
+                {validsErr && (
+                  <Icon
+                    icon="material-symbols:error-rounded"
+                    className="text-red-300"
+                    width={20}
+                  />
+                )}
+                {!validsErr && validsLoading && (
+                  <Icon icon="eos-icons:bubble-loading" />
+                )}
+                {!validsLoading && warns.length === 0 && (
+                    <p>нету.</p>
+                )}
+                {!validsLoading && warns.length > 0 && (
+                    <p>{warns.length}</p>
+                )}
+
+                <WarningPopup opened={warnsOpened} warnings={warns} onClose={() => setWarnsOpened(false)} />
+              </button>
             </div>
 
             <p>Думал на протяжении {execution_time} сек.</p>
