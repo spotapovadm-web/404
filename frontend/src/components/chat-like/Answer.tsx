@@ -92,7 +92,7 @@ function Answer({
             <div className="flex mb-4">
               <button
                 onClick={() => {
-                  if (!validsErr) setOpenValids(!validsOpened);
+                  if (!validsErr && !validsLoading) setOpenValids(!validsOpened);
                 }}
                 className="bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center"
               >
