@@ -29,7 +29,7 @@ class Settings(BaseModel):
     
     # CORS
     CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",  # React фронтенд
+        "http://localhost:8080",  
         "http://localhost:8000",  # FastAPI
     ]
     

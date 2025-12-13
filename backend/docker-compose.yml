@@ -75,7 +75,7 @@ services:
     container_name: testops-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "8080:80"  # Изменено с 3000:3000 на 8080:80
     environment:
       - REACT_APP_API_URL=http://localhost:8000
     depends_on:
