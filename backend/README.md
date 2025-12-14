@@ -53,8 +53,56 @@ pip install -r requirements.txt
 
 ### 2️⃣ Настройка переменных окружения
 
-Создайте файл `.env` в корне проекта:
+Создайте файл `.env` в корне проекта.
 
+
+
+```env
+# ============ ОСНОВНЫЕ НАСТРОЙКИ ============
+APP_NAME=TestOps Copilot
+ENVIRONMENT=development  # development | staging | production
+DEBUG=True
+
+# ============ СЕРВЕР ============
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+
+# ============ CLOUD.RU AI AGENT ============
+CLOUDRU_AGENT_URL=https://<your-agent-id>-agent.ai-agent.inference.cloud.ru
+CLOUDRU_API_KEY=<your-cloudru-api-key>
+
+# ============ БАЗА ДАННЫХ (опционально) ============
+# Используется только при необходимости хранения тест-кейсов
+# DATABASE_URL=postgresql://testops:testops123@localhost:5432/testops_db
+# REDIS_URL=redis://localhost:6379/0
+
+# ============ ЛОГИРОВАНИЕ ============
+LOG_LEVEL=INFO
+LOG_FILE=logs/app.log
+
+# ============ БЕЗОПАСНОСТЬ ============
+SECRET_KEY=testops-secret-key-for-hackathon-change-later
+API_KEY_EXPIRY_DAYS=30
+
+# ============ ЛИМИТЫ И ЗАЩИТА ============
+MAX_REQUIREMENT_LENGTH=1000
+MAX_TEST_CASES_PER_BATCH=50
+REQUEST_TIMEOUT_SECONDS=30
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_PERIOD=60  # seconds
+
+# ============ ALLURE ============
+ALLURE_RESULTS_DIR=./allure-results
+ALLURE_REPORT_DIR=./allure-report
+
+# ============ РЕЖИМЫ РАБОТЫ ============
+TEST_MODE=False
+
+# ============ НАСТРОЙКИ РЕТРАЕВ AI АГЕНТА ============
+AGENT_MAX_RETRIES=3
+AGENT_RETRY_DELAY=1.0
+AGENT_RETRY_BACKOFF=2.0
+# AGENT_RETRY_STATUS_CODES заданы в config.py по умолчанию
 ```env
 ENVIRONMENT=development
 DEBUG=True
@@ -164,7 +212,6 @@ curl http://localhost:8000/health
 ### DevOps
 - Docker
 - Docker Compose
-- PostgreSQL (опционально)
 
 ---
 
