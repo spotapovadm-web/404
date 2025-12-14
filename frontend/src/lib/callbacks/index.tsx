@@ -30,7 +30,7 @@ const onCopy = (content: string) => {
     .catch(() => toast.error("Ошибка копирования"))
 };
 
-const onTestFileChange = async (e: React.ChangeEvent<HTMLInputElement>, addHistory: CallableFunction, chatHistory: Array<ReactElement>, setFilesPopupOpen: CallableFunction, setFilesForPopup: CallableFunction) => {
+const onTestFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setFilesPopupOpen: CallableFunction, setFilesForPopup: CallableFunction) => {
     const files = e.target.files;
     if (!files) {
         return
@@ -40,8 +40,10 @@ const onTestFileChange = async (e: React.ChangeEvent<HTMLInputElement>, addHisto
         return
     }
 
-    setFilesForPopup(files);
+    setFilesForPopup(Array.from(files));
     setFilesPopupOpen(true);
+
+    e.target.value = '';
 
     // addHistory(<FilesRequest key={chatHistory.length} files={files} />)
 }

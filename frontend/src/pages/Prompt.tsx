@@ -104,8 +104,9 @@ function Prompt() {
               ref={filePickerRef}
               type="file"
               className="hidden"
+              multiple
               accept=".py"
-              onChange={(e) => onTestFileChange(e, addHistory, chat_history, setFilesPopupOpen, setFilesForPopup)}
+              onChange={(e) => onTestFileChange(e, setFilesPopupOpen, setFilesForPopup)}
             />
 
             <Button
@@ -120,7 +121,7 @@ function Prompt() {
           </div>
         </div>
       </div>
-      <FilesTestTypePopup open={filesPopupOpen} files={filesForPopup} setOpen={setFilesPopupOpen} />
+      <FilesTestTypePopup open={filesPopupOpen} files={filesForPopup} setFiles={setFilesForPopup} setOpen={setFilesPopupOpen}/>
     </div>
   );
 }
