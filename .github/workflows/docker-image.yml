@@ -32,7 +32,7 @@ jobs:
     - name: Build Backend Image
       run: |
         cd backend
-        echo ${{ secrets.FILE_ENV }} >> .env
+        echo '${{ secrets.FILE_ENV }}' | tee .env > /dev/null
         docker build \
           --tag ${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
           --tag ${{ env.BACKEND_IMAGE }}:latest \
