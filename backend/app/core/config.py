@@ -25,8 +25,8 @@ class Settings(BaseModel):
     
     # CORS
     CORS_ORIGINS: List[str] = [
-        "http://localhost:8080",  
-        "http://localhost:8000",  # FastAPI
+        "http://87.242.100.206:8080",  
+        "http://87.242.100.206:8080",  # FastAPI
     ]
     
     # Время ожидания

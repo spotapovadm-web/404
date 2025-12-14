@@ -60,19 +60,21 @@ pip install -r requirements.txt
 ```env
 # ============ ОСНОВНЫЕ НАСТРОЙКИ ============
 APP_NAME=TestOps Copilot
-ENVIRONMENT=development  # development | staging | production
+ENVIRONMENT=development  # development, staging, production
 DEBUG=True
 
-# ============ СЕРВЕР ============
+# Сервер
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
 
 # ============ CLOUD.RU AI AGENT ============
-CLOUDRU_AGENT_URL=https://<your-agent-id>-agent.ai-agent.inference.cloud.ru
-CLOUDRU_API_KEY=<your-cloudru-api-key>
 
-# ============ БАЗА ДАННЫХ (опционально) ============
-# Используется только при необходимости хранения тест-кейсов
+CLOUDRU_AGENT_URL=https://08144f1a-8c7f-4925-9a8a-d28495c40de9-agent.ai-agent.inference.cloud.ru
+
+CLOUDRU_API_KEY=ZGU4MmMxOGItNjg2OS00Y2ZmLWE2YmUtZTMwYjg4MWRkMGNk.3b5cf52e0708027b3c14baf0434a247e
+
+# ============ БАЗА ДАННЫХ  ============
+# Оставьте пустым или закомментируйте
 # DATABASE_URL=postgresql://testops:testops123@localhost:5432/testops_db
 # REDIS_URL=redis://localhost:6379/0
 
@@ -81,36 +83,28 @@ LOG_LEVEL=INFO
 LOG_FILE=logs/app.log
 
 # ============ БЕЗОПАСНОСТЬ ============
-SECRET_KEY=testops-secret-key-for-hackathon-change-later
+SECRET_KEY=testops-secret-key-for-hackathon-2024-change-later
 API_KEY_EXPIRY_DAYS=30
 
-# ============ ЛИМИТЫ И ЗАЩИТА ============
+# ============ ЛИМИТЫ ============
 MAX_REQUIREMENT_LENGTH=1000
 MAX_TEST_CASES_PER_BATCH=50
 REQUEST_TIMEOUT_SECONDS=30
 RATE_LIMIT_REQUESTS=100
 RATE_LIMIT_PERIOD=60  # seconds
 
-# ============ ALLURE ============
+# ============ ДРУГИЕ НАСТРОЙКИ ============
+# Оставьте значения по умолчанию
 ALLURE_RESULTS_DIR=./allure-results
 ALLURE_REPORT_DIR=./allure-report
-
-# ============ РЕЖИМЫ РАБОТЫ ============
 TEST_MODE=False
 
-# ============ НАСТРОЙКИ РЕТРАЕВ AI АГЕНТА ============
+# Настройки ретраев (новые)
 AGENT_MAX_RETRIES=3
 AGENT_RETRY_DELAY=1.0
 AGENT_RETRY_BACKOFF=2.0
 # AGENT_RETRY_STATUS_CODES заданы в config.py по умолчанию
-```env
-ENVIRONMENT=development
-DEBUG=True
-BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
 
-CLOUDRU_AGENT_URL=<URL_вашего_агента>
-CLOUDRU_API_KEY=<API_ключ>
 ```
 
 ---

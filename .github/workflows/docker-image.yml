@@ -15,6 +15,7 @@ env:
 jobs:
   build-and-run:
     runs-on: self-hosted
+    environment: dev
     timeout-minutes: 15
 
     steps:
@@ -31,6 +32,7 @@ jobs:
     - name: Build Backend Image
       run: |
         cd backend
+        echo '${{ secrets.FILE_ENV }}' | tee .env > /dev/null
         docker build \
           --tag ${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
           --tag ${{ env.BACKEND_IMAGE }}:latest \
@@ -91,3 +93,4 @@ jobs:
           docker rmi ${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
                      ${{ env.FRONTEND_IMAGE }}:${{ github.sha }} 2>/dev/null || true
         fi
+#
