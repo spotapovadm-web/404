@@ -7,12 +7,12 @@ import type { JSX } from "react";
 const onSendButton = (reqObj: RefObject<HTMLInputElement | null>, testTypeObj: RefObject<HTMLSelectElement | null>, productObj: RefObject<HTMLInputElement | null>, addHistory: CallableFunction, chatHistory: JSX.Element[]) => {
     const product_name = productObj.current?.value;
     if (!product_name || product_name.length === 0) {
-        return toast.error("Введите имя продукта")
+        return toast.error("Введите название продукта")
     }
 
     const requirement = reqObj.current?.value;
     if (!requirement || requirement.length === 0) {
-        return toast.error("Введите требование тест кейса")
+        return toast.error("Введите требование к тест кейсу")
     }
     const test_type = testTypeObj.current?.value as TestType;
     

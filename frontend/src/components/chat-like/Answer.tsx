@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import hljs from "highlight.js";
 import { onCopy } from "@lib/callbacks";
 import { ValidationPopup, WarningPopup } from "@/components";
+import { RetryError } from "@lib/errors";
 
 function Answer({
   req,
@@ -34,6 +35,8 @@ function Answer({
 
   useEffect(() => {
     if (effectRan.current) return;
+    const start = performance.now();
+
     const func = async () => {
       try {
         const value = await generateTest(
@@ -43,10 +46,15 @@ function Answer({
           "NORMAL"
         );
         setTestCase(value?.test_case);
-        setExecutionTime(value?.execution_time);
+        setExecutionTime((performance.now() - start) / 1000);
 
         setLoading(false);
       } catch (err) {
+        if (err instanceof RetryError) {
+            func();
+            return;
+        }
+
         setErr(true);
         console.log(err);
       }
@@ -146,7 +154,7 @@ function Answer({
               </button>
             </div>
 
-            <p>Думал на протяжении {execution_time} сек.</p>
+            <p>Думал на протяжении {execution_time.toFixed(2)} сек.</p>
             <button
               type="button"
               onClick={() => onCopy(test_case)}

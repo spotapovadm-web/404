@@ -12,6 +12,8 @@ function Prompt() {
   const sendButtonRef = useRef<HTMLButtonElement>(null);
   const testTypeRef = useRef<HTMLSelectElement>(null);
 
+  const filePickerRef = useRef<HTMLInputElement>(null);
+
   const [chat_history, setChatHistory] = useState<JSX.Element[]>([]);
 
   const addHistory = (element: JSX.Element) => {
@@ -20,6 +22,10 @@ function Prompt() {
     });
   };
 
+  const openPicker = () => {
+    filePickerRef.current?.click();
+  }
+
   return (
     <div className="w-screen h-screen flex flex-col bg-bg text-fg">
       <div className="flex flex-col w-full gap-10 pb-55 items-start m-auto overflow-y-auto grow">
@@ -27,7 +33,7 @@ function Prompt() {
         {chat_history}
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full flex justify-center">
+      <div className="fixed bottom-0 z-10 left-0 w-full flex justify-center drop-shadow-2xl">
         <div className="w-full lg:w-[50%] bg-primary p-4 rounded-t-2xl flex flex-col gap-4 shadow-xl">
           <div className="w-full flex flex-row gap-3 items-center">
             <input
@@ -87,6 +93,24 @@ function Prompt() {
               <Icon
                 icon="mingcute:arrow-up-fill"
                 className="text-bg rotate-90"
+              />
+            </Button>
+
+            <input
+              title="file-picker"
+              ref={filePickerRef}
+              type="file"
+              className="hidden"
+              onChange={() => {}}
+            />
+
+            <Button
+              onClick={openPicker}
+              className="w-12 h-12 flex items-center justify-center rounded-xl hover:bg-accent/75 active:bg-accent/50 transition-colors"
+            >
+              <Icon
+                icon="mdi:file"
+                className="text-bg"
               />
             </Button>
           </div>

@@ -1,4 +1,5 @@
 import type { TestType, PriorityType } from "../types";
+import { RetryError } from "../errors";
 
 const API_BASE_PATH = "http://localhost:8000/api/v1";
 
@@ -8,22 +9,38 @@ const generateTest = async (
   product: string,
   priority: PriorityType
 ): Promise<Record<string, any>> => {
-  const res = await fetch(API_BASE_PATH + `/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      requirement: requirement,
-      test_type: test_type,
-      product: product,
-      priority: priority,
-    }),
-  });
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 30000);
+  
+  try {
+    const  res = await fetch(API_BASE_PATH + `/generate`, {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+        requirement: requirement,
+        test_type: test_type,
+        product: product,
+        priority: priority,
+        }),
+        signal: controller.signal
+    });
 
-  if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
 
-  return Promise.resolve(await res.json());
+    return Promise.resolve(await res.json());
+  } catch(e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+        throw new RetryError(
+            "Retry the request, maybe this time agent will reply."
+        );
+    }
+    console.log(e);
+    throw e;
+  } finally {
+    clearTimeout(id);
+  }
 };
 
 const generateTestBatch = async (
@@ -52,7 +69,7 @@ const generateTestFromOpenAPI = async (
   spec_url: string
 ): Promise<Record<string, any>> => {
   const res = await fetch(
-    API_BASE_PATH + `/generate-from-openapi?spec_url${spec_url}`,
+    API_BASE_PATH + `/generate-from-openapi?spec_url=${spec_url}`,
     {
       method: "POST",
       headers: {
