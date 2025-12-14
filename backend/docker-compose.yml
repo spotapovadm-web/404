@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  testops-backend:
+    build: .
+    container_name: testops-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - DEBUG=False
+      # Cloud.ru AI Agent настройки
+      - CLOUDRU_AGENT_URL=${CLOUDRU_AGENT_URL}
+      - CLOUDRU_API_KEY=${CLOUDRU_API_KEY}
+    volumes:
+      - ./logs:/app/logs
+      - ./test_results:/app/test_results
+    networks:
+      - testops-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis для кэширования (опционально)
+  redis:
+    image: redis:7-alpine
+    container_name: testops-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - testops-network
+    command: redis-server --appendonly yes
+
+  # PostgreSQL для хранения тест-кейсов (опционально)
+  postgres:
+    image: postgres:15-alpine
+    container_name: testops-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=testops
+      - POSTGRES_PASSWORD=testops123
+      - POSTGRES_DB=testops_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - testops-network
+
+  # pgAdmin для управления БД (опционально)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: testops-pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@testops.local
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "5050:80"
+    networks:
+      - testops-network
+
+  # Фронтенд (React) - если будет отдельный контейнер
+  testops-frontend:
+    build:
+      context: ../frontend  # Укажите путь к фронтенду
+      dockerfile: Dockerfile
+    container_name: testops-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"  # Изменено с 3000:3000 на 8080:80
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - testops-backend
+    networks:
+      - testops-network
+
+networks:
+  testops-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
