@@ -1,7 +1,7 @@
 import type { TestType, PriorityType } from "../types";
 import { RetryError } from "../errors";
 
-const API_BASE_PATH = "http://localhost:8000/api/v1";
+const API_BASE_PATH = "http://87.242.100.206:8000/api/v1";
 
 const generateTest = async (
   requirement: string,
