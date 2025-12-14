@@ -1,7 +1,3 @@
-"""
-config.py - Конфигурация приложения (упрощенная версия без pydantic-settings)
-"""
-
 import os
 from typing import List
 from pydantic import BaseModel
@@ -44,6 +40,12 @@ class Settings(BaseModel):
     # Валидация
     MIN_TEST_CASE_LENGTH: int = 100
     MAX_TEST_CASE_LENGTH: int = 5000
+    
+    # Настройки ретраев (новые)
+    AGENT_MAX_RETRIES: int = int(os.getenv("AGENT_MAX_RETRIES", "3"))
+    AGENT_RETRY_DELAY: float = float(os.getenv("AGENT_RETRY_DELAY", "1.0"))
+    AGENT_RETRY_BACKOFF: float = float(os.getenv("AGENT_RETRY_BACKOFF", "2.0"))
+    AGENT_RETRY_STATUS_CODES: List[int] = [429, 500, 502, 503, 504]
 
 # Экземпляр настроек
 settings = Settings()

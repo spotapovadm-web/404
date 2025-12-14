@@ -1,13 +1,11 @@
-"""
-llm_service.py - Сервис для работы с Cloud.ru AI Agent
-"""
-
 import os
 import httpx
 import logging
 import re
 import json
-from typing import Dict, Any, Optional
+import asyncio
+import time
+from typing import Dict, Any, Optional, List
 from uuid import uuid4
 
 from app.core.config import settings
@@ -15,6 +13,97 @@ from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import MessageSendParams, SendMessageRequest
 
 logger = logging.getLogger(__name__)
+
+
+class RetryManager:
+    """Менеджер для управления повторными попытками запросов"""
+    
+    def __init__(self):
+        self.max_retries = settings.AGENT_MAX_RETRIES
+        self.base_delay = settings.AGENT_RETRY_DELAY
+        self.backoff_factor = settings.AGENT_RETRY_BACKOFF
+        self.retry_status_codes = settings.AGENT_RETRY_STATUS_CODES
+        
+    async def execute_with_retry(self, func, *args, **kwargs):
+        """
+        Выполняет функцию с повторными попытками при ошибках
+        
+        Args:
+            func: Асинхронная функция для выполнения
+            *args: Аргументы функции
+            **kwargs: Ключевые аргументы
+            
+        Returns:
+            Результат выполнения функции
+            
+        Raises:
+            Exception: Если все попытки не удались
+        """
+        last_exception = None
+        
+        for attempt in range(self.max_retries + 1):
+            try:
+                if attempt > 0:
+                    delay = self.base_delay * (self.backoff_factor ** (attempt - 1))
+                    logger.info(f"Попытка {attempt + 1}/{self.max_retries + 1} после задержки {delay:.2f} секунд")
+                    await asyncio.sleep(delay)
+                
+                result = await func(*args, **kwargs)
+                
+                # Проверяем статус код если это HTTP-ответ
+                if hasattr(result, 'status_code'):
+                    if result.status_code in self.retry_status_codes:
+                        if attempt < self.max_retries:
+                            logger.warning(f"Получен статус {result.status_code}, повторная попытка...")
+                            continue
+                
+                return result
+                
+            except httpx.TimeoutException as e:
+                last_exception = e
+                logger.warning(f"Таймаут при попытке {attempt + 1}/{self.max_retries + 1}: {str(e)}")
+                if attempt < self.max_retries:
+                    continue
+                    
+            except httpx.NetworkError as e:
+                last_exception = e
+                logger.warning(f"Сетевая ошибка при попытке {attempt + 1}/{self.max_retries + 1}: {str(e)}")
+                if attempt < self.max_retries:
+                    continue
+                    
+            except httpx.HTTPStatusError as e:
+                last_exception = e
+                status_code = e.response.status_code if e.response else 0
+                
+                if status_code in self.retry_status_codes and attempt < self.max_retries:
+                    logger.warning(f"HTTP ошибка {status_code} при попытке {attempt + 1}/{self.max_retries + 1}: {str(e)}")
+                    continue
+                else:
+                    # Не повторяем для других статус кодов
+                    raise e
+                    
+            except Exception as e:
+                last_exception = e
+                logger.error(f"Ошибка при попытке {attempt + 1}/{self.max_retries + 1}: {str(e)}")
+                if attempt < self.max_retries:
+                    # Проверяем, стоит ли повторять для этой ошибки
+                    error_msg = str(e).lower()
+                    retryable_errors = [
+                        'timeout', 'connection', 'network', 'temporarily',
+                        'busy', 'overloaded', 'rate limit', 'quota'
+                    ]
+                    
+                    if any(keyword in error_msg for keyword in retryable_errors):
+                        logger.info(f"Повторяемая ошибка, пробуем снова...")
+                        continue
+                
+                # Если это последняя попытка или ошибка не повторяемая
+                break
+        
+        # Если дошли до сюда, все попытки не удались
+        logger.error(f"Все {self.max_retries + 1} попыток не удались")
+        raise last_exception if last_exception else Exception("Все попытки запроса не удались")
+
 
 class CloudRuAgentService:
     """Сервис для взаимодействия с AI-агентом Cloud.ru"""
@@ -31,41 +120,48 @@ class CloudRuAgentService:
         self.httpx_client = None
         self.agent_client = None
         self.agent_info = None
+        self.retry_manager = RetryManager()
         
         logger.info(f"Инициализирован CloudRuAgentService для {self.base_url}")
     
     async def initialize(self):
-        """Инициализация подключения к агенту"""
+        """Инициализация подключения к агенту с ретраями"""
         if self.agent_client is not None:
             return True
         
         try:
-            timeout_config = httpx.Timeout(settings.AGENT_TIMEOUT)
-            self.httpx_client = httpx.AsyncClient(timeout=timeout_config)
-            self.httpx_client.headers['Authorization'] = f'Bearer {self.api_key}'
-            
-            # Получаем информацию об агенте
-            resolver = A2ACardResolver(
-                httpx_client=self.httpx_client,
-                base_url=self.base_url,
-            )
-            
-            self.agent_info = await resolver.get_agent_card()
-            self.agent_client = A2AClient(
-                httpx_client=self.httpx_client,
-                agent_card=self.agent_info,
-            )
-            
-            logger.info(f"Агент подключен: {self.agent_info.name}")
+            # Используем ретрай менеджер для инициализации
+            await self.retry_manager.execute_with_retry(self._initialize_connection)
+            logger.info(f"✅ Агент успешно подключен: {self.agent_info.name}")
             return True
             
         except Exception as e:
-            logger.error(f"Ошибка инициализации агента: {str(e)}")
+            logger.error(f"❌ Ошибка подключения к AI-агенту после всех попыток: {str(e)}")
             raise
+    
+    async def _initialize_connection(self):
+        """Внутренний метод инициализации подключения"""
+        timeout_config = httpx.Timeout(settings.AGENT_TIMEOUT)
+        self.httpx_client = httpx.AsyncClient(timeout=timeout_config)
+        self.httpx_client.headers['Authorization'] = f'Bearer {self.api_key}'
+        
+        # Получаем информацию об агенте
+        resolver = A2ACardResolver(
+            httpx_client=self.httpx_client,
+            base_url=self.base_url,
+        )
+        
+        self.agent_info = await resolver.get_agent_card()
+        self.agent_client = A2AClient(
+            httpx_client=self.httpx_client,
+            agent_card=self.agent_info,
+        )
+        
+        logger.info(f"Агент подключен: {self.agent_info.name}")
     
     async def generate_test_case(self, requirement: str, test_type: str, product: str) -> Dict[str, Any]:
         """
-        Генерирует тест-кейс на основе требования
+        Генерирует тест-кейс на основе требования с поддержкой ретраев
         """
         import time
         start_time = time.time()
@@ -94,8 +190,11 @@ class CloudRuAgentService:
             logger.info(f"Генерация тест-кейса: {test_type} для {product}")
             logger.debug(f"Промпт: {prompt[:200]}...")
             
-            # Отправляем запрос
-            response = await self.agent_client.send_message(request)
+            # Отправляем запрос с ретраями
+            response = await self.retry_manager.execute_with_retry(
+                self._send_message_to_agent,
+                request
+            )
             
             # Извлекаем код
             generated_code = self._extract_response_text_improved(response)
@@ -113,19 +212,31 @@ class CloudRuAgentService:
                     "test_type": test_type,
                     "product": product,
                     "agent_name": self.agent_info.name if self.agent_info else "Unknown",
-                    "requirement_length": len(requirement)
+                    "requirement_length": len(requirement),
+                    "retries_attempted": 0  # TODO: Можно добавить счетчик
                 },
                 "execution_time": round(execution_time, 2)
             }
             
         except Exception as e:
-            logger.error(f"Ошибка генерации: {str(e)}", exc_info=True)
+            logger.error(f"❌ Ошибка генерации после всех попыток: {str(e)}", exc_info=True)
+            
+            execution_time = time.time() - start_time
             return {
                 "success": False,
                 "error": str(e),
                 "test_case": self._generate_fallback_code(),
-                "execution_time": round(time.time() - start_time, 2)
+                "execution_time": round(execution_time, 2),
+                "metadata": {
+                    "test_type": test_type,
+                    "product": product,
+                    "retries_exhausted": True
+                }
             }
+    
+    async def _send_message_to_agent(self, request: SendMessageRequest):
+        """Внутренний метод отправки сообщения агенту"""
+        return await self.agent_client.send_message(request)
     
     def _build_test_prompt(self, requirement: str, test_type: str, product: str) -> str:
         """Строит промпт для генерации тест-кейса"""
