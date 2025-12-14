@@ -10,5 +10,5 @@ npm i
 npm run build
 
 // Запуск
-npx serve -s dist -p 8080
+npx serve -s dist -l 8080
 ```
