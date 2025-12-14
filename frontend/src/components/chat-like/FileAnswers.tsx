@@ -95,7 +95,7 @@ function Answer({
   }, [test_case]);
 
   return (
-    <div className="relative flex flex-col bg-primary/40 backdrop-blur-2xl rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
+    <div className="relative flex flex-col bg-primary rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
       {err === false ? (
         loading === true ? (
           <Icon icon="eos-icons:bubble-loading" width={25} />

@@ -1,7 +1,7 @@
-import type { RefObject } from "react";
+import type { ReactElement, RefObject } from "react";
 import type { TestType } from "../types";
 import toast from "react-hot-toast";
-import { Request, Answer } from "@/components";
+import { Request, Answer, FilesRequest } from "@/components";
 import type { JSX } from "react";
 
 const onSendButton = (reqObj: RefObject<HTMLInputElement | null>, testTypeObj: RefObject<HTMLSelectElement | null>, productObj: RefObject<HTMLInputElement | null>, addHistory: CallableFunction, chatHistory: JSX.Element[]) => {
@@ -30,4 +30,20 @@ const onCopy = (content: string) => {
     .catch(() => toast.error("Ошибка копирования"))
 };
 
-export { onSendButton, onCopy }
+const onTestFileChange = async (e: React.ChangeEvent<HTMLInputElement>, addHistory: CallableFunction, chatHistory: Array<ReactElement>, setFilesPopupOpen: CallableFunction, setFilesForPopup: CallableFunction) => {
+    const files = e.target.files;
+    if (!files) {
+        return
+    }
+    
+    if (Array.from(files).length == 0) {
+        return
+    }
+
+    setFilesForPopup(files);
+    setFilesPopupOpen(true);
+
+    // addHistory(<FilesRequest key={chatHistory.length} files={files} />)
+}
+
+export { onSendButton, onCopy, onTestFileChange }

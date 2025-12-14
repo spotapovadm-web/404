@@ -1,9 +1,9 @@
 import { Icon } from "@iconify-icon/react";
-import { Button } from "@/components";
+import { Button, FilesTestTypePopup, GeometricBackground } from "@/components";
 import { GenTestType } from "@/lib/enums";
 import type { TestType } from "@/lib/types";
 import { useRef, useState } from "react";
-import { onSendButton } from "@lib/callbacks";
+import { onSendButton, onTestFileChange } from "@lib/callbacks";
 import type { JSX } from "react";
 
 function Prompt() {
@@ -15,6 +15,8 @@ function Prompt() {
   const filePickerRef = useRef<HTMLInputElement>(null);
 
   const [chat_history, setChatHistory] = useState<JSX.Element[]>([]);
+  const [filesPopupOpen, setFilesPopupOpen] = useState(false);
+  const [filesForPopup, setFilesForPopup] = useState<FileList | null>(null);
 
   const addHistory = (element: JSX.Element) => {
     setChatHistory((prev) => {
@@ -27,14 +29,15 @@ function Prompt() {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-bg text-fg">
-      <div className="flex flex-col w-full gap-10 pb-55 items-start m-auto overflow-y-auto grow">
-        <h2 className="text-3xl font-bold m-auto p-20">TestOps Copilot</h2>
+    <div className="w-screen h-screen bg-linear-to-br from-blue-500 to-yellow-200 flex flex-col text-fg">
+      <GeometricBackground />
+      <div className="flex flex-col w-full gap-10 z-10 pb-55 items-start m-auto overflow-y-auto grow">
+        <h2 className="text-3xl font-bold m-auto p-20">Allure.AI</h2>
         {chat_history}
       </div>
 
-      <div className="fixed bottom-0 z-10 left-0 w-full flex justify-center drop-shadow-2xl">
-        <div className="w-full lg:w-[50%] bg-primary p-4 rounded-t-2xl flex flex-col gap-4 shadow-xl">
+      <div className="fixed bottom-0 z-20 left-0 w-full flex justify-center">
+        <div className="w-full lg:w-[50%] bg-primary/50 backdrop-blur-2xl shadow-2xl p-4 rounded-t-2xl flex flex-col gap-4">
           <div className="w-full flex flex-row gap-3 items-center">
             <input
               ref={productRef}
@@ -55,10 +58,10 @@ function Prompt() {
                 ref={testTypeRef}
                 id="test_type"
                 name="test_type"
-                className="bg-secondary text-white px-3 py-2 rounded-xl"
+                className="bg-primary/40 text-white px-3 py-2 rounded-xl"
               >
                 {Object.entries(GenTestType).map(([value]) => (
-                  <option key={value} value={value as TestType}>
+                  <option key={value} className="bg-primary" value={value as TestType}>
                     {value}
                   </option>
                 ))}
@@ -92,7 +95,7 @@ function Prompt() {
             >
               <Icon
                 icon="mingcute:arrow-up-fill"
-                className="text-bg rotate-90"
+                className="text-primary rotate-90"
               />
             </Button>
 
@@ -101,7 +104,8 @@ function Prompt() {
               ref={filePickerRef}
               type="file"
               className="hidden"
-              onChange={() => {}}
+              accept=".py"
+              onChange={(e) => onTestFileChange(e, addHistory, chat_history, setFilesPopupOpen, setFilesForPopup)}
             />
 
             <Button
@@ -110,12 +114,13 @@ function Prompt() {
             >
               <Icon
                 icon="mdi:file"
-                className="text-bg"
+                className="text-primary"
               />
             </Button>
           </div>
         </div>
       </div>
+      <FilesTestTypePopup open={filesPopupOpen} files={filesForPopup} setOpen={setFilesPopupOpen} />
     </div>
   );
 }

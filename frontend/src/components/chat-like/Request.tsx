@@ -19,7 +19,7 @@ function Request({
   return (
     <div
       ref={component}
-      className="relative flex flex-col self-end bg-primary rounded-2xl max-w-[85vw] mr-[3vw] p-5 transition-all duration-150"
+      className="relative flex flex-col self-end bg-primary/40 backdrop-blur-2xl rounded-2xl max-w-[85vw] mr-[3vw] p-5 transition-all duration-150"
     >
       <div className="flex gap-1">
         <p className="font-bold">Тип Теста:</p>

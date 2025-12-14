@@ -29,7 +29,7 @@ function ValidationPopup({
   return opened === true ? (
     <div
       ref={popupRef}
-      className="absolute z-50 bg-black/40 backdrop-blur-2xl flex flex-col gap-2 top-[50%] mt-5 left-0 rounded-2xl p-2"
+      className="absolute z-50 bg-black/70  flex flex-col gap-2 top-[50%] mt-5 left-0 rounded-2xl p-2"
     >
       {validations &&
         Object.keys(validations).map((key, index) => (
