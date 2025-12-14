@@ -1,82 +1,102 @@
-TestOps Copilot 🚀
-AI-ассистент для автоматизации работы QA-инженеров на базе Cloud.ru AI Agent
+# TestOps Copilot 🚀
 
+**TestOps Copilot** — AI-ассистент для автоматизации работы QA-инженеров на базе **Cloud.ru AI Agent**. Проект предназначен для генерации, валидации и оптимизации тест-кейсов в формате **Allure TestOps as Code**.
 
-✨ Возможности
-🎯 Генерация тест-кейсов
-Автоматическая генерация тест-кейсов в формате Allure TestOps as Code
+---
 
-Поддержка всех типов тестов: UI, API, E2E, UNIT
+## ✨ Возможности
 
-Интеграция с Cloud.ru AI Agent для качественной генерации
+### 🎯 Генерация тест-кейсов
+- Автоматическая генерация тест-кейсов в формате **Allure TestOps as Code**
+- Поддержка типов тестов: **UI, API, E2E, UNIT**
+- Интеграция с **Cloud.ru AI Agent**
+- Использование паттерна **AAA (Arrange – Act – Assert)**
 
-Паттерн AAA (Arrange-Act-Assert) в каждом тесте
+### 🛡️ Валидация и оптимизация
+- Проверка соответствия стандартам Allure
+- Поиск дубликатов тестов
+- Оптимизация тестовых наборов
+- Анализ покрытия и рекомендации по улучшению
+- Проверка синтаксиса Python-кода
 
-🛡️ Валидация и оптимизация
-Автоматическая валидация на соответствие стандартам Allure
+### 🔌 Интеграции
+- Cloud.ru Evolution Foundation Model (через официальный API)
+- Парсинг **OpenAPI 3.0** для генерации API-тестов
+- Готовые примеры для быстрого старта
+- Docker-контейнеризация
 
-Поиск дубликатов и оптимизация тестовых наборов
+---
 
-Анализ покрытия и рекомендации по улучшению
+## 🚀 Быстрый старт
 
-Проверка синтаксиса Python кода
+### 1️⃣ Установка зависимостей
 
-🔌 Интеграции
-Cloud.ru Evolution Foundation Model через официальный API
-
-OpenAPI 3.0 парсинг для автоматической генерации API тестов
-
-Готовые примеры для быстрого старта
-
-Docker контейнеризация для легкого развертывания
-
-🚀 Быстрый старт
-1. Установка зависимостей
-
-# Клонируйте репозиторий
+```bash
+# Клонировать репозиторий
 git clone <repository-url>
 cd backend
 
-# Создайте виртуальное окружение
+# Создать виртуальное окружение
 python -m venv venv
 
-# Активируйте окружение
+# Активировать окружение
 # Windows:
 venv\Scripts\activate
-# Linux/Mac:
+# Linux / macOS:
 source venv/bin/activate
 
-# Установите зависимости
+# Установить зависимости
 pip install -r requirements.txt
-2. Настройка переменных окружения
+```
 
+---
 
+### 2️⃣ Настройка переменных окружения
 
+Создайте файл `.env` в корне проекта:
+
+```env
 ENVIRONMENT=development
 DEBUG=True
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
-CLOUDRU_AGENT_URL=ваш_url_агента
-CLOUDRU_API_KEY=ваш_api_ключ
-3. Запуск приложения
 
-# Запуск сервера
+CLOUDRU_AGENT_URL=<URL_вашего_агента>
+CLOUDRU_API_KEY=<API_ключ>
+```
+
+---
+
+### 3️⃣ Запуск приложения
+
+#### Локальный запуск
+
+```bash
 python run.py
-Или с помощью Docker:
+```
 
+#### Запуск через Docker
 
-# Сборка и запуск контейнера
+```bash
 docker-compose up --build
-📚 Документация API
-После запуска сервера документация API будет доступна по адресам:
+```
 
-Swagger UI: http://localhost:8000/docs
+---
 
-ReDoc: http://localhost:8000/redoc
+## 📚 Документация API
 
-Основные эндпоинты
-Генерация тест-кейса
-bash
+После запуска сервера документация доступна по адресам:
+
+- **Swagger UI:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
+
+---
+
+## 🔗 Основные эндпоинты
+
+### Генерация тест-кейса
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/generate" \
   -H "Content-Type: application/json" \
   -d '{
@@ -85,16 +105,26 @@ curl -X POST "http://localhost:8000/api/v1/generate" \
     "product": "Cloud.ru Calculator",
     "priority": "NORMAL"
   }'
-Валидация тест-кейса
-bash
+```
+
+---
+
+### Валидация тест-кейса
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/validate" \
   -H "Content-Type: application/json" \
   -d '{
     "test_case": "import allure\\n\\n@allure.feature(\\"Test\\")\\nclass TestExample:\\n    def test_example(self):\\n        assert True",
     "test_type": "UI"
   }'
-Оптимизация тест-кейсов
-bash
+```
+
+---
+
+### Оптимизация тест-кейсов
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/optimize" \
   -H "Content-Type: application/json" \
   -d '{
@@ -102,44 +132,47 @@ curl -X POST "http://localhost:8000/api/v1/optimize" \
     "analyze_coverage": true,
     "find_duplicates": true
   }'
-Проверка здоровья системы
-bash
-curl "http://localhost:8000/health"
+```
 
-🛠️ Технологический стек
-Backend
-Python 3.10+ - основной язык разработки
+---
 
-FastAPI - современный асинхронный веб-фреймворк
+### Проверка здоровья сервиса
 
-Pydantic - валидация и сериализация данных
+```bash
+curl http://localhost:8000/health
+```
 
-a2a-sdk - официальный SDK для Cloud.ru AI Agent
+---
 
-httpx - асинхронные HTTP запросы
+## 🛠️ Технологический стек
 
-AI/ML
-Cloud.ru AI Agent - платформа для AI-агентов
+### Backend
+- Python 3.10+
+- FastAPI
+- Pydantic
+- a2a-sdk (Cloud.ru AI Agent)
+- httpx
 
-Cloud.ru Evolution Foundation Model - мощная LLM модель
+### AI / ML
+- Cloud.ru AI Agent
+- Cloud.ru Evolution Foundation Model
 
-Тестирование
-pytest - фреймворк для тестирования
+### Тестирование
+- pytest
+- Allure TestOps
 
-Allure TestOps - промышленный стандарт тест-менеджмента
+### DevOps
+- Docker
+- Docker Compose
+- PostgreSQL (опционально)
 
-DevOps
-Docker - контейнеризация приложения
+---
 
-Docker Compose - оркестрация контейнеров
+## 📊 Примеры сгенерированных тестов
 
-PostgreSQL (опционально) - база данных для хранения тест-кейсов
+### UI тест
 
-📊 Примеры использования
-Генерация UI теста для калькулятора
-
-
-# Пример сгенерированного тест-кейса
+```python
 import allure
 import pytest
 
@@ -151,95 +184,95 @@ import pytest
 @allure.label("generated_by", "TestOps Copilot")
 
 class TestPriceCalculator:
-    """Тесты для Price Calculator"""
 
     @allure.title("Проверить отображение начальной страницы калькулятора")
-    @allure.tag("NORMAL")
-    @allure.label("owner", "QA")
-    
     def test_check_display_calculator(self):
-        """Проверить отображение начальной страницы калькулятора Cloud.ru"""
         # Arrange
-        # Настройка тестовых данных
-        
         # Act
-        # Выполнение действия
-        
         # Assert
-        # Проверка результата
         assert True
-Генерация API теста для Evolution Compute
+```
 
+---
 
-# Пример API теста
+### API тест
+
+```python
 import allure
 import requests
 
 @allure.feature("Evolution Compute API")
 @allure.story("Проверить создание виртуальной машины")
 @allure.label("test_type", "API")
-@allure.label("product", "Evolution Compute")
 @allure.label("priority", "HIGH")
 
 class TestComputeAPI:
-    
-    @allure.title("Создание виртуальной машины через API")
+
     def test_create_virtual_machine(self):
-        # Arrange
         headers = {"Authorization": "Bearer <token>"}
         payload = {"name": "test-vm", "flavor": "small"}
-        
-        # Act
+
         response = requests.post(
             "https://compute.api.cloud.ru/v3/vms",
             json=payload,
             headers=headers
         )
-        
-        # Assert
+
         assert response.status_code == 201
         assert response.json()["name"] == "test-vm"
-🔧 Разработка
-Установка для разработки
+```
 
+---
 
-# Установка dev-зависимостей
+## 🔧 Разработка
+
+### Установка dev-зависимостей
+
+```bash
 pip install -r requirements-dev.txt
+```
 
-# Запуск тестов
+### Запуск тестов
+
+```bash
 pytest tests/
+```
 
-# Проверка покрытия тестами
+### Покрытие кода
+
+```bash
 pytest --cov=app tests/
-Линтинг и форматирование
-bash
-# Проверка стиля кода
+```
+
+### Линтинг и форматирование
+
+```bash
 flake8 app/
-
-# Форматирование кода
 black app/
-
-# Сортировка импортов
 isort app/
+```
 
+---
 
-Поддержка
-Если у вас возникли вопросы или предложения:
+## 🆘 Поддержка
 
-Создайте Issue в репозитории
+- Создайте **Issue** в репозитории
+- Email: `<your-email@example.com>`
+- Telegram-чат проекта
 
-Напишите на email: [ваш-email@example.com]
+---
 
-Присоединяйтесь к нашему Telegram-чату
+## 📄 Лицензия
 
-📄 Лицензия
-Этот проект распространяется под лицензией MIT. Подробнее см. в файле LICENSE.
+Проект распространяется под лицензией **MIT**. Подробнее см. файл `LICENSE`.
 
-🙏 Благодарности
-Команде Cloud.ru за предоставление AI-инфраструктуры
+---
 
-Разработчикам FastAPI за отличный фреймворк
+## 🙏 Благодарности
 
-Сообществу Allure TestOps за стандарты тестирования
+- Команде **Cloud.ru** за AI-инфраструктуру
+- Разработчикам **FastAPI**
+- Сообществу **Allure TestOps**
 
-⭐ Если вам понравился проект, поставьте звезду на GitHub!
+⭐ Если проект оказался полезным — поставьте звезду на GitHub!
+
