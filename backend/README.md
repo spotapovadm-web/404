@@ -88,7 +88,7 @@ docker-compose up --build
 После запуска сервера документация доступна по адресам:
 
 - **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
+
 
 ---
 
