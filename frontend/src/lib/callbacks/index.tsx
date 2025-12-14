@@ -1,7 +1,7 @@
 import type { ReactElement, RefObject } from "react";
 import type { TestType } from "../types";
 import toast from "react-hot-toast";
-import { Request, Answer, FilesRequest } from "@/components";
+import { Request, Answer, FilesRequest, FileAnswer } from "@/components";
 import type { JSX } from "react";
 
 const onSendButton = (reqObj: RefObject<HTMLInputElement | null>, testTypeObj: RefObject<HTMLSelectElement | null>, productObj: RefObject<HTMLInputElement | null>, addHistory: CallableFunction, chatHistory: JSX.Element[]) => {
@@ -48,4 +48,29 @@ const onTestFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setFiles
     // addHistory(<FilesRequest key={chatHistory.length} files={files} />)
 }
 
-export { onSendButton, onCopy, onTestFileChange }
+const onDoBetterBatch = (test_types: Record<string, string>, files: FileList | null, addHistory: CallableFunction, chatHistory: Array<JSX.Element>) => {
+    if (!files)
+        return
+
+    let sorted: Record<string, Array<File>> = {
+        "UI": [],
+        "E2E": [],
+        "API": [],
+        "UNIT": []
+    }
+
+    for (const file of Array.from(files)) {
+        sorted[test_types[file.name]] = [...sorted[test_types[file.name]], file]
+    }
+
+    for (const key of Object.keys(sorted)) {
+        if (sorted[key].length === 0 ) {
+            delete sorted[key];
+        }
+    }
+
+    addHistory(<FilesRequest key={chatHistory.length} files={sorted} />)
+    addHistory(<FileAnswer key={chatHistory.length + 1} files={sorted} />)
+} 
+
+export { onSendButton, onCopy, onTestFileChange, onDoBetterBatch }

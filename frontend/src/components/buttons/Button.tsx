@@ -12,7 +12,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref} // attach the ref here
       onClick={onClick}
-      className={`p-[1vh] bg-accent rounded-3xl flex items-center justify-center ${className}`}
+      className={`p-[1vh] bg-accent rounded-3xl flex items-center justify-center cursor-pointer ${className}`}
     >
       {children}
     </button>

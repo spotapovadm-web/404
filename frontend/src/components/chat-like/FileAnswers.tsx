@@ -1,5 +1,10 @@
 import { Icon } from "@iconify-icon/react";
-import { generateTest, validate } from "@lib/api";
+import {
+  analyzeComplexity,
+  generateTest,
+  validate,
+  validateBatch,
+} from "@lib/api";
 import type { TestType } from "@lib/types";
 import { useEffect, useRef, useState } from "react";
 import hljs from "highlight.js";
@@ -7,28 +12,12 @@ import { onCopy } from "@lib/callbacks";
 import { ValidationPopup, WarningPopup } from "@/components";
 import { RetryError } from "@lib/errors";
 
-function Answer({
-  req,
-  test_type,
-  product_name,
-}: {
-  req: string;
-  test_type: TestType;
-  product_name: string;
-}) {
-  const [test_case, setTestCase] = useState("");
+function FileAnswer({ files }: { files: Record<string, Array<File>> }) {
   const [execution_time, setExecutionTime] = useState(0);
   const [err, setErr] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [validsOpened, setOpenValids] = useState(false);
-  const [validsLoading, setValidsLoading] = useState(true);
-  const [validsErr, setValidsErr] = useState(false);
-  const [validsCount, setValidsCount] = useState(0);
-  const [validValidsCount, setValidValidsCount] = useState(0);
-  const [validsRes, setValidsRes] = useState<Record<any, string>>({});
-
-  const [warns, setWarns] = useState([]);
+  const [content, setMessageContent] = useState<Record<string, any>>({});
   const [warnsOpened, setWarnsOpened] = useState(false);
 
   const effectRan = useRef(false);
@@ -39,20 +28,58 @@ function Answer({
 
     const func = async () => {
       try {
-        const value = await generateTest(
-          req,
-          test_type,
-          product_name,
-          "NORMAL"
-        );
-        setTestCase(value?.test_case);
-        setExecutionTime((performance.now() - start) / 1000);
+        for (const test_t of Object.keys(files)) {
+          const test_type = test_t as TestType;
+          let test_cases: Array<string> = [];
 
+          for (const file of Array.from(files[test_type])) {
+            const test_case = await file.text();
+            test_cases = [...test_cases, test_case];
+          }
+
+          const type_content: Record<string, any> = {};
+
+          const validation = (await validateBatch(test_type, test_cases)) as {
+            detailed_results?: Array<Record<string, any>>;
+          };
+          const complexity = (await analyzeComplexity(test_cases)) as {
+            detailed_analysis?: Array<Record<string, any>>;
+          };
+
+          if (validation?.detailed_results && files[test_t]) {
+            Array.from(validation.detailed_results).forEach((obj, index) => {
+              const filename = files[test_t][index].name;
+
+              type_content[filename] = {
+                warnings: [...obj?.warnings],
+                compliance: { ...obj?.compliance },
+              };
+            });
+          }
+
+          if (complexity?.detailed_analysis && files[test_t]) {
+            Array.from(complexity.detailed_analysis).forEach((obj, index) => {
+              const filename = files[test_t][index].name;
+
+              type_content[filename] = {
+                ...(type_content[filename] ? type_content[filename] : {}),
+                complexity_level: [...obj?.complexity_level],
+              };
+            });
+          }
+
+          setMessageContent((prev) => ({
+            ...prev,
+            [test_type]: type_content,
+          }));
+        }
+
+        setExecutionTime((performance.now() - start) / 1000);
         setLoading(false);
       } catch (err) {
         if (err instanceof RetryError) {
-            func();
-            return;
+          func();
+          return;
         }
 
         setErr(true);
@@ -65,113 +92,65 @@ function Answer({
     effectRan.current = true;
   }, []);
 
-  const isFirstRun = useRef(true);
-  useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
-      return;
-    }
-
-    const asyncFetch = async () => {
-      try {
-        const res = (await validate(test_case, test_type)) as Record<
-          string,
-          any
-        >;
-        setValidsCount(Object.values(res?.compliance).length);
-        setValidValidsCount(
-          Object.values(res?.compliance).filter((v) => v === true).length
-        );
-        setValidsRes(res?.compliance);
-        setWarns(res?.warnings);
-        setValidsLoading(false);
-      } catch (err) {
-        console.log(err);
-        setValidsErr(true);
-      }
-    };
-
-    asyncFetch();
-  }, [test_case]);
-
   return (
-    <div className="relative flex flex-col bg-primary rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
+    <div className="relative flex flex-col bg-primary/40 backdrop-blur-2xl rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
       {err === false ? (
         loading === true ? (
           <Icon icon="eos-icons:bubble-loading" width={25} />
         ) : (
           <>
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => {
-                  if (!validsErr && !validsLoading) setOpenValids(!validsOpened);
-                }}
-                className="relative bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center"
-              >
-                <p>Валидации</p>
-                {validsErr && (
-                  <Icon
-                    icon="material-symbols:error-rounded"
-                    className="text-red-300"
-                    width={20}
-                  />
-                )}
-                {!validsErr && validsLoading && (
-                  <Icon icon="eos-icons:bubble-loading" />
-                )}
-                {!validsErr &&
-                  !validsLoading &&
-                  validValidsCount + "/" + validsCount}
-
-                <ValidationPopup
-                    opened={validsOpened}
-                    validations={validsRes}
-                    onClose={() => setOpenValids(false)}
-                />
-              </button>
-              <button
-               onClick={() => setWarnsOpened(!warnsOpened)}
-               className="relative flex gap-1 bg-black/10 rounded-2xl p-2 items-center">
-                <p>Предупреждения: </p>
-                {validsErr && (
-                  <Icon
-                    icon="material-symbols:error-rounded"
-                    className="text-red-300"
-                    width={20}
-                  />
-                )}
-                {!validsErr && validsLoading && (
-                  <Icon icon="eos-icons:bubble-loading" />
-                )}
-                {!validsLoading && warns.length === 0 && (
-                    <p>нету.</p>
-                )}
-                {!validsLoading && warns.length > 0 && (
-                    <p>{warns.length}</p>
-                )}
-
-                <WarningPopup opened={warnsOpened} warnings={warns} onClose={() => setWarnsOpened(false)} />
-              </button>
-            </div>
-
             <p>Думал на протяжении {execution_time.toFixed(2)} сек.</p>
-            <button
-              type="button"
-              onClick={() => onCopy(test_case)}
-              className="flex backdrop-blur-2xl items-center mt-24 gap-1 absolute z-10 border border-black/20 bg-black/20 self-end hover:border-white/40 active:bg-white/50 transition-colors duration-100 rounded-bl-2xl rounded-tr-2xl p-2"
-            >
-              <Icon icon="mingcute:copy-line" />
-              <p>Копировать код</p>
-            </button>
-            <pre className="bg-black/40 rounded-2xl mt-4 whitespace-pre overflow-x-scroll p-2">
-              <code
-                className="font-code python"
-                dangerouslySetInnerHTML={{
-                  __html: hljs.highlight(test_case, { language: "python" })
-                    .value,
-                }}
-              />
-            </pre>
+            {Object.keys(content).map((key, index) => (
+              <div key={index} className="flex flex-col">
+                <span className="flex gap-1">
+                  <p className="font-bold">Тип теста:</p>
+                  <p>{key}</p>
+                </span>
+                {Object.keys(content[key]).map((fileKey, index) => (
+                    <div key={index}>
+                      <span className="flex gap-1">
+                        <p className="font-bold">Файл:</p>
+                        <p>{fileKey}</p>
+                      </span>
+
+                      {content[key][fileKey].complexity_level && (
+                        <span className="flex gap-1">
+                          <p className="font-bold">Уровень усложнёности:</p>
+                          <p>{content[key][fileKey].complexity_level}</p>
+                        </span>
+                      )}
+
+                      {content[key][fileKey].compliance && (
+                        <p className="font-bold">Валидации:</p>
+                      )}
+
+                      {content[key][fileKey].compliance && Object.keys(content[key][fileKey].compliance).map((compKey, index) => (
+                        <span key={index} className="flex gap-1">
+                          <p>&#8226; {compKey}</p>
+                          {content[key][fileKey].compliance[compKey] !== true ? (
+                            <Icon
+                              className="text-red-400"
+                              icon="material-symbols:error-rounded"
+                              width={20}
+                            />
+                          ) : (
+                            <Icon className="text-green-400" icon="mdi:success" width={20} />
+                          )}
+                        </span>
+                      ))}
+
+                      {content[key][fileKey].warnings && (
+                        <p className="font-bold">Предупреждения: </p>
+                      )}
+
+                      {content[key][fileKey].warnings && Array.from(content[key][fileKey].warnings).map((warns, index) => (
+                        <p key={index}>&#8226; {warns as string}</p>
+                      ))}
+
+                    </div>
+                ))}
+              </div>
+            ))}
           </>
         )
       ) : (
@@ -188,4 +167,4 @@ function Answer({
   );
 }
 
-export default Answer;
+export default FileAnswer;

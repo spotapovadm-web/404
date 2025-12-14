@@ -51,8 +51,8 @@ function Answer({
         setLoading(false);
       } catch (err) {
         if (err instanceof RetryError) {
-            func();
-            return;
+          func();
+          return;
         }
 
         setErr(true);
@@ -95,7 +95,7 @@ function Answer({
   }, [test_case]);
 
   return (
-    <div className="relative flex flex-col bg-primary/40 backdrop-blur-2xl rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
+    <div className="flex flex-col bg-primary/40 backdrop-blur-2xl rounded-2xl max-w-[85vw] ml-[3vw] p-5 transition-all duration-150">
       {err === false ? (
         loading === true ? (
           <Icon icon="eos-icons:bubble-loading" width={25} />
@@ -104,9 +104,10 @@ function Answer({
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => {
-                  if (!validsErr && !validsLoading) setOpenValids(!validsOpened);
+                  if (!validsErr && !validsLoading)
+                    setOpenValids(!validsOpened);
                 }}
-                className="relative bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center"
+                className="relative bg-black/10 rounded-2xl self-start p-2 flex gap-1 items-center cursor-pointer"
               >
                 <p>Валидации</p>
                 {validsErr && (
@@ -124,14 +125,15 @@ function Answer({
                   validValidsCount + "/" + validsCount}
 
                 <ValidationPopup
-                    opened={validsOpened}
-                    validations={validsRes}
-                    onClose={() => setOpenValids(false)}
+                  opened={validsOpened}
+                  validations={validsRes}
+                  onClose={() => setOpenValids(false)}
                 />
               </button>
               <button
-               onClick={() => setWarnsOpened(!warnsOpened)}
-               className="relative flex gap-1 bg-black/10 rounded-2xl p-2 items-center">
+                onClick={() => setWarnsOpened(!warnsOpened)}
+                className="relative flex gap-1 bg-black/10 rounded-2xl p-2 items-center cursor-pointer"
+              >
                 <p>Предупреждения: </p>
                 {validsErr && (
                   <Icon
@@ -143,35 +145,39 @@ function Answer({
                 {!validsErr && validsLoading && (
                   <Icon icon="eos-icons:bubble-loading" />
                 )}
-                {!validsLoading && warns.length === 0 && (
-                    <p>нету.</p>
-                )}
-                {!validsLoading && warns.length > 0 && (
-                    <p>{warns.length}</p>
-                )}
+                {!validsLoading && warns.length === 0 && <p>нету.</p>}
+                {!validsLoading && warns.length > 0 && <p>{warns.length}</p>}
 
-                <WarningPopup opened={warnsOpened} warnings={warns} onClose={() => setWarnsOpened(false)} />
+                <WarningPopup
+                  opened={warnsOpened}
+                  warnings={warns}
+                  onClose={() => setWarnsOpened(false)}
+                />
               </button>
             </div>
 
-            <p>Думал на протяжении {execution_time.toFixed(2)} сек.</p>
-            <button
-              type="button"
-              onClick={() => onCopy(test_case)}
-              className="flex backdrop-blur-2xl items-center mt-24 gap-1 absolute z-10 border border-black/20 bg-black/20 self-end hover:border-white/40 active:bg-white/50 transition-colors duration-100 rounded-bl-2xl rounded-tr-2xl p-2"
-            >
-              <Icon icon="mingcute:copy-line" />
-              <p>Копировать код</p>
-            </button>
-            <pre className="bg-black/40 rounded-2xl mt-4 whitespace-pre overflow-x-scroll p-2">
-              <code
+            <p>Думал на протяжении {execution_time.toFixed(2)} сек.</p> 
+
+            <div className="relative">
+            <pre className="relative bg-black/40 rounded-2xl mt-4 whitespace-pre overflow-x-scroll p-2">
+            <code
                 className="font-code python"
                 dangerouslySetInnerHTML={{
-                  __html: hljs.highlight(test_case, { language: "python" })
+                __html: hljs.highlight(test_case, { language: "python" })
                     .value,
                 }}
-              />
+            />
             </pre>
+
+            <button
+                type="button"
+                onClick={() => onCopy(test_case)}
+                className="absolute top-0 right-0 mt-4 flex items-center gap-1 p-2 rounded-bl-2xl rounded-tr-2xl border border-black/20 bg-black/20 hover:border-white/40 active:bg-white/50 backdrop-blur-2xl cursor-pointer transition-colors duration-100"
+            >
+                <Icon icon="mingcute:copy-line" />
+                <p className="text-sm">Копировать</p>
+            </button>
+            </div>
           </>
         )
       ) : (

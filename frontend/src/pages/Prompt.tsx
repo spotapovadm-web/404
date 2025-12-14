@@ -58,7 +58,7 @@ function Prompt() {
                 ref={testTypeRef}
                 id="test_type"
                 name="test_type"
-                className="bg-primary/40 text-white px-3 py-2 rounded-xl"
+                className="bg-primary/40 text-white px-3 py-2 rounded-xl cursor-pointer"
               >
                 {Object.entries(GenTestType).map(([value]) => (
                   <option key={value} className="bg-primary" value={value as TestType}>
@@ -121,7 +121,7 @@ function Prompt() {
           </div>
         </div>
       </div>
-      <FilesTestTypePopup open={filesPopupOpen} files={filesForPopup} setFiles={setFilesForPopup} setOpen={setFilesPopupOpen}/>
+      <FilesTestTypePopup open={filesPopupOpen} files={filesForPopup} chatHistory={chat_history} addHistory={addHistory} setOpen={setFilesPopupOpen}/>
     </div>
   );
 }

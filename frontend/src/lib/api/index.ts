@@ -11,30 +11,30 @@ const generateTest = async (
 ): Promise<Record<string, any>> => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), 30000);
-  
+
   try {
-    const  res = await fetch(API_BASE_PATH + `/generate`, {
-        method: "POST",
-        headers: {
+    const res = await fetch(API_BASE_PATH + `/generate`, {
+      method: "POST",
+      headers: {
         "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      },
+      body: JSON.stringify({
         requirement: requirement,
         test_type: test_type,
         product: product,
         priority: priority,
-        }),
-        signal: controller.signal
+      }),
+      signal: controller.signal,
     });
 
     if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
 
     return Promise.resolve(await res.json());
-  } catch(e) {
+  } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") {
-        throw new RetryError(
-            "Retry the request, maybe this time agent will reply."
-        );
+      throw new RetryError(
+        "Retry the request, maybe this time agent will reply."
+      );
     }
     console.log(e);
     throw e;
@@ -164,12 +164,15 @@ const removeDuplicates = async (
   return Promise.resolve(await res.json());
 };
 
-const analyzeComplexity = async (): Promise<Record<string, any>> => {
+const analyzeComplexity = async (
+  test_cases: Array<string>
+): Promise<Record<string, any>> => {
   const res = await fetch(API_BASE_PATH + "/analyze-complexity", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify([...test_cases]),
   });
 
   if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
@@ -202,7 +205,7 @@ const validateBatch = async (
   requirements: Array<string>
 ): Promise<Record<string, any>> => {
   const res = await fetch(
-    API_BASE_PATH + `validate-batch?test_type=${test_type}`,
+    API_BASE_PATH + `/validate-batch?test_type=${test_type}`,
     {
       method: "POST",
       headers: {

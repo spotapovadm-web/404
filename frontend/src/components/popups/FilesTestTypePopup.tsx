@@ -1,19 +1,22 @@
 import { useFloating } from "@floating-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type JSX } from "react";
 import { GenTestType } from "@/lib/enums";
 import type { TestType } from "@/lib/types";
+import { onDoBetterBatch } from "@/lib/callbacks";
 
 interface FilesTestTypePopupProps {
   open: boolean;
   files: FileList | null;
-  setFiles: CallableFunction;
+  addHistory: CallableFunction
+  chatHistory: Array<JSX.Element>
   setOpen: CallableFunction;
 }
 
 function FilesTestTypePopup({
   open,
   files,
-  setFiles,
+  addHistory,
+  chatHistory,
   setOpen,
 }: FilesTestTypePopupProps) {
   const { refs, floatingStyles } = useFloating({
@@ -48,7 +51,7 @@ function FilesTestTypePopup({
   const onSubmit = () => {
     setOpen(false);
     
-    
+    onDoBetterBatch(selectedTypes, files, addHistory, chatHistory);
   };
 
   if (!open) return null;
@@ -70,10 +73,10 @@ function FilesTestTypePopup({
                 onChange={(e) =>
                   handleChange(file.name, e.target.value as TestType)
                 }
-                className="bg-primary/40 text-white px-3 py-2 rounded-xl"
+                className="bg-primary/40 text-white px-3 py-2 rounded-xl cursor-pointer"
               >
                 {Object.entries(GenTestType).map(([value]) => (
-                  <option key={value} value={value as TestType}>
+                  <option className="bg-primary" key={value} value={value as TestType}>
                     {value}
                   </option>
                 ))}
