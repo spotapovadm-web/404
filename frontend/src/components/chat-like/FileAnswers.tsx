@@ -1,15 +1,10 @@
 import { Icon } from "@iconify-icon/react";
 import {
   analyzeComplexity,
-  generateTest,
-  validate,
   validateBatch,
 } from "@lib/api";
 import type { TestType } from "@lib/types";
 import { useEffect, useRef, useState } from "react";
-import hljs from "highlight.js";
-import { onCopy } from "@lib/callbacks";
-import { ValidationPopup, WarningPopup } from "@/components";
 import { RetryError } from "@lib/errors";
 
 function FileAnswer({ files }: { files: Record<string, Array<File>> }) {
@@ -18,7 +13,6 @@ function FileAnswer({ files }: { files: Record<string, Array<File>> }) {
   const [loading, setLoading] = useState(true);
 
   const [content, setMessageContent] = useState<Record<string, any>>({});
-  const [warnsOpened, setWarnsOpened] = useState(false);
 
   const effectRan = useRef(false);
 

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Icon } from "@iconify-icon/react";
 
 function WarningPopup({
   opened,
