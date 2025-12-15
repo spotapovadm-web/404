@@ -1,5 +1,4 @@
-# 404
-AI Devtools Hack
+# Работа команды 404
 
 # Содержание
 - [**TestOps Copilot 🚀**](#testops-copilot-)
